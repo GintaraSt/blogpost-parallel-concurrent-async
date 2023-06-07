@@ -13,25 +13,6 @@ public class Program
         string dataToWrite = string.Concat(Enumerable.Repeat("TestString", 5_000_000));
         Stopwatch sw;
 
-        sw = Stopwatch.StartNew();
-
-        // Warmup hard drive
-        for (int i = 0; i < 30; i++)
-        {
-            WriteData(-i, dataToWrite);
-        }
-        for (int i = 0; i < 30; i++)
-        {
-            await WriteDataAsync(-30 - i, dataToWrite);
-        }
-        for (int i = 0; i < 30; i++)
-        {
-            WriteData(-60 - i, dataToWrite);
-        }
-
-        sw.Stop();
-        Console.WriteLine($"Drive warmup took: {sw.ElapsedMilliseconds}ms, {sw.ElapsedTicks}ticks");
-
         /// ---------------------------
         /// ------ Synchronous -------
         /// ---------------------------
