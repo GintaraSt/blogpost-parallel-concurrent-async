@@ -1,24 +1,63 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 /**
  * This demo only works on Windows based devices
  */
 public class Program
 {
-    private static string DataToWrite = string.Concat(Enumerable.Repeat("TestString", 70000000));
-
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
     static async Task Main(string[] args)
     {
+        Console.WriteLine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+        string dataToWrite = string.Concat(Enumerable.Repeat("TestString", 5_000_000));
+        Stopwatch sw;
+
+        sw = Stopwatch.StartNew();
+
+        // Warmup hard drive
+        for (int i = 0; i < 30; i++)
+        {
+            WriteData(-i, dataToWrite);
+        }
+        for (int i = 0; i < 30; i++)
+        {
+            await WriteDataAsync(-30 - i, dataToWrite);
+        }
+        for (int i = 0; i < 30; i++)
+        {
+            WriteData(-60 - i, dataToWrite);
+        }
+
+        sw.Stop();
+        Console.WriteLine($"Drive warmup took: {sw.ElapsedMilliseconds}ms, {sw.ElapsedTicks}ticks");
+
+        /// ---------------------------
+        /// ------ Synchronous -------
+        /// ---------------------------
+        sw = Stopwatch.StartNew();
+
+        WriteData(0, dataToWrite);
+        WriteData(1, dataToWrite);
+        WriteData(2, dataToWrite);
+        WriteData(3, dataToWrite);
+
+        sw.Stop();
+        Console.WriteLine($"Time took: {sw.ElapsedMilliseconds}ms, {sw.ElapsedTicks}ticks");
+
         /// ---------------------------
         /// ------ Asynchronous -------
         /// ---------------------------
-        var sw = Stopwatch.StartNew();
+        sw = Stopwatch.StartNew();
 
-        var asyncTask0 = WriteData(0);
-        var asyncTask1 = WriteData(1);
-        var asyncTask2 = WriteData(2);
-        var asyncTask3 = WriteData(3);
+        //await WriteDataAsync(0, dataToWrite);
+        //await WriteDataAsync(1, dataToWrite);
+        //await WriteDataAsync(3, dataToWrite);
+        //await WriteDataAsync(3, dataToWrite);
+        var asyncTask0 = WriteDataAsync(0, dataToWrite);
+        var asyncTask1 = WriteDataAsync(1, dataToWrite);
+        var asyncTask2 = WriteDataAsync(2, dataToWrite);
+        var asyncTask3 = WriteDataAsync(3, dataToWrite);
 
         await Task.WhenAll(asyncTask0, asyncTask1, asyncTask2, asyncTask3);
         sw.Stop();
@@ -27,15 +66,15 @@ public class Program
         /// ---------------------------
         /// ------ Synchronous --------
         /// ---------------------------
-        // sw = Stopwatch.StartNew();
+        //sw = Stopwatch.StartNew();
 
-        // DoWork(1);
-        // DoWork(2);
-        // DoWork(3);
-        // DoWork(4);
+        //DoWork(1);
+        //DoWork(2);
+        //DoWork(3);
+        //DoWork(4);
 
-        // sw.Stop();
-        // Console.WriteLine($"Time took: {sw.ElapsedMilliseconds}ms, {sw.ElapsedTicks}ticks");
+        //sw.Stop();
+        //Console.WriteLine($"Time took: {sw.ElapsedMilliseconds}ms, {sw.ElapsedTicks}ticks");
 
         /// ---------------------------
         /// -------- Parallel ---------
@@ -82,13 +121,24 @@ public class Program
         Console.WriteLine($"Completed {id} - {DateTime.UtcNow.TimeOfDay}");
     }
 
-    static async Task WriteData(int id)
+    static void WriteData(int id, string dataToWrite)
     {
         Console.WriteLine($"Starting {id}: {DateTime.UtcNow.TimeOfDay}");
 
-        string docPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "AsyncTest");
-        using var outputFile = new StreamWriter(Path.Combine(docPath, $"Test{id}.txt"));
-        await outputFile.WriteAsync(DataToWrite);
+        string docPath = Path.Combine(@"F:\SyncVsAsyncTest");
+        using var outputFile = new StreamWriter(Path.Combine(docPath, $"SyncTest{id}.txt"));
+        outputFile.Write(dataToWrite);
+
+        Console.WriteLine($"Completed {id} - {DateTime.UtcNow.TimeOfDay}");
+    }
+
+    static async Task WriteDataAsync(int id, string dataToWrite)
+    {
+        Console.WriteLine($"Starting {id}: {DateTime.UtcNow.TimeOfDay}");
+
+        string docPath = Path.Combine(@"F:\SyncVsAsyncTest");
+        using var outputFile = new StreamWriter(Path.Combine(docPath, $"AsyncTest{id}.txt"));
+        await outputFile.WriteAsync(dataToWrite);
 
         Console.WriteLine($"Completed {id} - {DateTime.UtcNow.TimeOfDay}");
     }
