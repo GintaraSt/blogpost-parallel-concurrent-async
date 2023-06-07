@@ -9,19 +9,19 @@ public class Program
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
     static async Task Main(string[] args)
     {
-        Console.WriteLine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
-        string dataToWrite = string.Concat(Enumerable.Repeat("TestString", 5_000_000));
         Stopwatch sw;
+
+        var httpClient = new HttpClient();
 
         /// ---------------------------
         /// ------ Synchronous -------
         /// ---------------------------
         sw = Stopwatch.StartNew();
 
-        WriteData(0, dataToWrite);
-        WriteData(1, dataToWrite);
-        WriteData(2, dataToWrite);
-        WriteData(3, dataToWrite);
+        SendRequest(0, httpClient);
+        SendRequest(1, httpClient);
+        SendRequest(2, httpClient);
+        SendRequest(3, httpClient);
 
         sw.Stop();
         Console.WriteLine($"Time took: {sw.ElapsedMilliseconds}ms, {sw.ElapsedTicks}ticks");
@@ -35,10 +35,10 @@ public class Program
         //await WriteDataAsync(1, dataToWrite);
         //await WriteDataAsync(3, dataToWrite);
         //await WriteDataAsync(3, dataToWrite);
-        var asyncTask0 = WriteDataAsync(0, dataToWrite);
-        var asyncTask1 = WriteDataAsync(1, dataToWrite);
-        var asyncTask2 = WriteDataAsync(2, dataToWrite);
-        var asyncTask3 = WriteDataAsync(3, dataToWrite);
+        var asyncTask0 = SendRequestAsync(0, httpClient);
+        var asyncTask1 = SendRequestAsync(1, httpClient);
+        var asyncTask2 = SendRequestAsync(2, httpClient);
+        var asyncTask3 = SendRequestAsync(3, httpClient);
 
         await Task.WhenAll(asyncTask0, asyncTask1, asyncTask2, asyncTask3);
         sw.Stop();
@@ -102,24 +102,20 @@ public class Program
         Console.WriteLine($"Completed {id} - {DateTime.UtcNow.TimeOfDay}");
     }
 
-    static void WriteData(int id, string dataToWrite)
+    static void SendRequest(int id, HttpClient httpClient)
     {
         Console.WriteLine($"Starting {id}: {DateTime.UtcNow.TimeOfDay}");
 
-        string docPath = Path.Combine(@"F:\SyncVsAsyncTest");
-        using var outputFile = new StreamWriter(Path.Combine(docPath, $"SyncTest{id}.txt"));
-        outputFile.Write(dataToWrite);
+        httpClient.Send(new HttpRequestMessage(HttpMethod.Get, "http://localhost:5201/slow-response"));
 
         Console.WriteLine($"Completed {id} - {DateTime.UtcNow.TimeOfDay}");
     }
 
-    static async Task WriteDataAsync(int id, string dataToWrite)
+    static async Task SendRequestAsync(int id, HttpClient httpClient)
     {
         Console.WriteLine($"Starting {id}: {DateTime.UtcNow.TimeOfDay}");
 
-        string docPath = Path.Combine(@"F:\SyncVsAsyncTest");
-        using var outputFile = new StreamWriter(Path.Combine(docPath, $"AsyncTest{id}.txt"));
-        await outputFile.WriteAsync(dataToWrite);
+        await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, "http://localhost:5201/slow-response"));
 
         Console.WriteLine($"Completed {id} - {DateTime.UtcNow.TimeOfDay}");
     }
