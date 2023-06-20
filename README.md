@@ -1,5 +1,5 @@
-# blogpost-parallel-concurrent-async
-Samples for blog post comparing parallel concurrent and asynchronous computing.
+# Samples for blogpost Concurrent vs Parallel vs Asynchronous Processing
+[You can find the post here](https://gintaras-dev.com/posts/concurrent-vs-parallel-vs-asynchronous-processing/)
 
 This repository contains code to test the differences between parallel, concurrent and asynchronous execution when using CPU bound tasks and tasks that are asynchronous by nature.
 
